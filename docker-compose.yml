@@ -1,0 +1,40 @@
+services:
+  mysql:
+    image: christiine/mysql-custom:latest
+    container_name: mysql_container
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword   # Root-passord for MySQL
+      MYSQL_DATABASE: mydatabase          # Navn på databasen som opprettes
+      MYSQL_USER: user                    # Brukernavn for MySQL
+      MYSQL_PASSWORD: password            # Passord for brukeren
+    # ports:
+    #   - "3306:3306"  # Binder MySQL-porten til vertsmaskinen (for testing)
+    networks:
+      - mynetwork
+
+  nginx:
+    image: christiine/nginx-custom:latest
+    container_name: nginx_container
+    restart: always
+    ports:
+      - "8080:80" #Binder port 8080 på vertsmaskinen til port 80 i containeren
+    networks:
+      - mynetwork
+    depends_on:
+      - api
+
+  api:
+    image: christiine/myapi:latest  # Bruker det nye multi-platform imaget
+    container_name: api_container
+    restart: always
+    environment:
+      - ConnectionStrings__DefaultConnection=Server=mysql_container;Database=mydatabase;User=user;Password=password;
+    networks:
+      - mynetwork
+    depends_on:
+      - mysql
+      
+networks:
+  mynetwork:
+    driver: bridge
